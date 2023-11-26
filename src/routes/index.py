@@ -1,8 +1,12 @@
 from flask import Blueprint, jsonify
 from database import connection
+import psycopg2
+
+from models import user
 
 #*DB connection
-myConn = connection.getConnection()
+myDB = connection.Database()
+myConn = myDB.getConnection()
 
 #*Creating the index blueprint for the routes
 indexBp = Blueprint("index", __name__)
@@ -19,34 +23,26 @@ def getUsers():
     cursor.execute("SELECT * FROM usuario")
     rows = cursor.fetchall()
 
-    res = []
-    user = {
-      "id":'',
-      "name": '',
-      "lastName": '',
-      "username": '',
-      "password": '',
-      "age": 0,
-      "photo": '',
-      "deleted": False,
-      "rol": 0
-    }
+    if rows:
 
-    for row in rows:
-      user["id"] = row[0]
-      user["name"] = row[1]
-      user["lastName"] = row[2]
-      user["username"] = row[3]
-      user["password"] = row[4]
-      user["age"] = row[5]
-      user["photo"] = row[6]
-      user["deleted"] = row[7]
-      user["rol"] = row[8]
+      res = []
+      for row in rows:
+        newUser = user.User(
+          row[0],
+          row[1],
+          row[2],
+          row[3],
+          row[4],
+          row[5],
+          row[6],
+          row[7],
+          row[8]
+        )
+        res.append(newUser.toJson())
 
-      res.append(user)
-
-    cursor.close()
-
-    return jsonify(res)
-  except e:
-    return '{"status":"fail", "code": 500}' 
+      cursor.close()
+      return jsonify(res)
+    else:
+      return '{"status":"ok", "message":"usuario table is empty"}'
+  except psycopg2.Error as e:
+    return '{"status":"fail", "code": 500, "error":"'+str(e)+'"}' 
