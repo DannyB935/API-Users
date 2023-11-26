@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
 from database import connection
 import psycopg2
 
@@ -45,4 +45,21 @@ def getUsers():
     else:
       return '{"status":"ok", "message":"usuario table is empty"}'
   except psycopg2.Error as e:
-    return '{"status":"fail", "code": 500, "error":"'+str(e)+'"}' 
+    return '{"status":"fail", "code": 500, "error":"'+str(e)+'"}'
+
+#*Insert new common user
+@indexBp.route('/api/users/newc/', methods=["POST"])
+def newCommonUser():
+
+  try:
+
+    if request.method == "POST":
+      jsonUser = request.json
+
+      query = " INSERT INTO usuario VALUES( %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+
+      return jsonify(jsonUser)
+
+  except psycopg2.Error as e:
+
+    return jsonify({"status":"fail", "code": 500, "message": str(e)})
