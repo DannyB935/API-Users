@@ -22,7 +22,7 @@ def getUsers():
 
   try:
     cursor = myConn.cursor()
-    cursor.execute("SELECT * FROM usuario")
+    cursor.execute("SELECT * FROM usuario WHERE deleted=false")
     rows = cursor.fetchall()
 
     if rows:
@@ -123,3 +123,18 @@ def newAdmin():
   except psycopg2.Error as e:
 
     return jsonify({"status":"fail", "code": 500, "message": str(e)})
+  
+#*Delete any user
+@indexBp.route('/api/users/delete/<id>', methods=["PUT"])
+def deleteUser(id):
+  try:
+    if request.method == "PUT":
+      query = "UPDATE usuario SET deleted=true WHERE id=%s"
+      cursor = myConn.cursor()
+      cursor.execute(query, (id,))
+      myConn.commit()
+      cursor.close()
+
+      return jsonify({"status": "ok", "code": 200, "message": "User was deleted"})
+  except psycopg2.Error as e:
+    return jsonify({"status": "fail", "code": 500, "message": str(e)})
