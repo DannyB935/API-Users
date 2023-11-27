@@ -1,6 +1,8 @@
 from flask import Blueprint, jsonify, request
 from database import connection
 import psycopg2
+import uuid
+import hashlib
 
 from models import user
 
@@ -50,15 +52,73 @@ def getUsers():
 #*Insert new common user
 @indexBp.route('/api/users/newc/', methods=["POST"])
 def newCommonUser():
-
   try:
-
     if request.method == "POST":
       jsonUser = request.json
 
-      query = " INSERT INTO usuario VALUES( %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+      #*Makes sure the username doesnt exist
+      query = "SELECT * FROM usuario WHERE username = %s AND deleted=false"
+      cursor = myConn.cursor()
+      cursor.execute(query, (jsonUser["username"],))
+      if cursor.fetchone():
+        return jsonify({"status": "error", "message": "The username already exist"})
+      else:
+        query = "INSERT INTO usuario VALUES( %s, %s, %s, %s, %s, %s, '');"
 
-      return jsonify(jsonUser)
+        #*Creates a hashed password using sha246
+        passBytes = jsonUser["password"].encode('utf-8')
+        sha = hashlib.sha256()
+        sha.update(passBytes)
+
+        cursor = myConn.cursor()
+        cursor.execute(query, (
+          str(uuid.uuid4()),
+          jsonUser["name"],
+          jsonUser["lastName"],
+          jsonUser["username"],
+          sha.hexdigest(),
+          jsonUser["age"],
+        ))
+        myConn.commit()
+        cursor.close()
+        return jsonify({"status": "ok", "code": 200, "message": "New common user created"})
+
+  except psycopg2.Error as e:
+
+    return jsonify({"status":"fail", "code": 500, "message": str(e)})
+  
+#*Insert new admin user
+@indexBp.route('/api/users/newa/', methods=["POST"])
+def newAdmin():
+  try:
+    if request.method == "POST":
+      jsonUser = request.json
+
+      query = "SELECT * FROM usuario WHERE username = %s AND deleted=false"
+      cursor = myConn.cursor()
+      cursor.execute(query, (jsonUser["username"],))
+      if cursor.fetchone():
+        return jsonify({"status": "error", "message": "The username already exist"})
+      else:
+        query = "INSERT INTO usuario VALUES( %s, %s, %s, %s, %s, %s, '', false, 1);"
+
+        #*Creates a hashed password using sha246
+        passBytes = jsonUser["password"].encode('utf-8')
+        sha = hashlib.sha256()
+        sha.update(passBytes)
+
+        cursor = myConn.cursor()
+        cursor.execute(query, (
+          str(uuid.uuid4()),
+          jsonUser["name"],
+          jsonUser["lastName"],
+          jsonUser["username"],
+          sha.hexdigest(),
+          jsonUser["age"],
+        ))
+        myConn.commit()
+        cursor.close()
+        return jsonify({"status": "ok", "code": 200, "message": "New admin created"})
 
   except psycopg2.Error as e:
 
