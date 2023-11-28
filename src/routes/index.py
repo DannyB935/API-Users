@@ -171,8 +171,8 @@ def login():
           "name": row[1],
           "lastName": row[2],
           "rol": row[8],
-          "tokenCreation": str(datetime.datetime.now(pytz.timezone('America/Mexico_City'))),
-          "expToken": str(datetime.datetime.now(pytz.timezone('America/Mexico_City')) + datetime.timedelta(minutes=1))
+          "iat": datetime.datetime.now(pytz.timezone('America/Mexico_City')),
+          "exp": datetime.datetime.now(pytz.timezone('America/Mexico_City')) + datetime.timedelta(minutes=1)
         }
 
         #*Create a jwt using a secret key
