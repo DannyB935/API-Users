@@ -172,7 +172,7 @@ def login():
           "lastName": row[2],
           "rol": row[8],
           "iat": datetime.datetime.now(pytz.timezone('America/Mexico_City')),
-          "exp": datetime.datetime.now(pytz.timezone('America/Mexico_City')) + datetime.timedelta(minutes=1)
+          "exp": datetime.datetime.now(pytz.timezone('America/Mexico_City')) + datetime.timedelta(minutes=10)
         }
 
         #*Create a jwt using a secret key
