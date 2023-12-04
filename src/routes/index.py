@@ -26,34 +26,40 @@ def test():
 @indexBp.route("/api/users/", methods=['GET'])
 def getUsers():
 
-  try:
-    cursor = myConn.cursor()
-    cursor.execute("SELECT * FROM usuario WHERE deleted=false")
-    rows = cursor.fetchall()
+  #*Protect route only for admins
+  reqAuth = mySec.verifyToken(request.headers)
+  if reqAuth:
+    try:
+      cursor = myConn.cursor()
+      cursor.execute("SELECT * FROM usuario WHERE deleted=false")
+      rows = cursor.fetchall()
 
-    if rows:
+      if rows:
 
-      res = []
-      for row in rows:
-        newUser = user.User(
-          row[0],
-          row[1],
-          row[2],
-          row[3],
-          row[4],
-          row[5],
-          row[6],
-          row[7],
-          row[8]
-        )
-        res.append(newUser.toJson())
+        res = []
+        for row in rows:
+          newUser = user.User(
+            row[0],
+            row[1],
+            row[2],
+            row[3],
+            row[4],
+            row[5],
+            row[6],
+            row[7],
+            row[8]
+          )
+          res.append(newUser.toJson())
 
-      cursor.close()
-      return jsonify(res)
-    else:
-      return '{"status":"ok", "message":"usuario table is empty"}'
-  except psycopg2.Error as e:
-    return '{"status":"fail", "code": 500, "error":"'+str(e)+'"}'
+        cursor.close()
+        return jsonify(res)
+      else:
+        return '{"status":"ok", "message":"usuario table is empty"}'
+    except psycopg2.Error as e:
+      return '{"status":"fail", "code": 500, "error":"'+str(e)+'"}'
+  
+  else:
+    return jsonify({"status": "error", "message": "You have no access into this route"}), 401
 
 #*Insert new common user
 @indexBp.route('/api/users/newc/', methods=["POST"])
@@ -176,9 +182,12 @@ def login():
         }
 
         #*Create a jwt using a secret key
+        #*We also send some data to store in session, can add more...
         return jsonify({
           "status": "ok",
-          "token": mySec.getToken(payload)
+          "token": mySec.getToken(payload),
+          "username": payload["username"],
+          "rol": payload["rol"]
         })
       else:
         return jsonify({"status": "error", "message": "The user doesn't exist or the credentials are wrong"})
