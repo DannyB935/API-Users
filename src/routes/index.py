@@ -43,7 +43,6 @@ def getUsers():
             row[1],
             row[2],
             row[3],
-            row[4],
             row[5],
             row[6],
             row[7],
@@ -178,7 +177,7 @@ def login():
           "lastName": row[2],
           "rol": row[8],
           "iat": datetime.datetime.now(pytz.timezone('America/Mexico_City')),
-          "exp": datetime.datetime.now(pytz.timezone('America/Mexico_City')) + datetime.timedelta(minutes=10)
+          "exp": datetime.datetime.now(pytz.timezone('America/Mexico_City')) + datetime.timedelta(minutes=1)
         }
 
         #*Create a jwt using a secret key
